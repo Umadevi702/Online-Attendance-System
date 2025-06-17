@@ -1,5 +1,5 @@
 # Online-Attendance-System
-This is a full-stack attendance management system built using Flask (Python) for the backend and HTML/CSS/JavaScript for the frontend. It uses MongoDB as the database to manage user accounts and attendance records.
+This Online attendance management system is a full stack project which is built using Flask (Python) for the backend and HTML/CSS/JavaScript for the frontend. It uses MongoDB as the database to manage user accounts and attendance records.
 
 ✨____Features____
 
