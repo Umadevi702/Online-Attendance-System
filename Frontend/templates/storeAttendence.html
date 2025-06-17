@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Attendance System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    h1, h2 {
+      text-align: center;
+    }
+
+    nav {
+      float: left;
+      width: 30%;
+      margin-right: 20px;
+    }
+
+    section {
+      float: left;
+      width: 60%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    button {
+      padding: 10px;
+      font-size: 16px;
+      margin-right: 5px;
+      cursor: pointer;
+    }
+
+    .present {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .absent {
+      background-color: #f44336;
+      color: white;
+    }
+
+    #submitButton {
+      margin-top: 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      display: none;
+    }
+
+    #statusMessage {
+      font-weight: bold;
+      margin-top: 10px;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="/storeAttendence">Store Attendance</a><br><br>
+    <a href="/logout">Logout</a>
+  </nav>
+
+  <h1>Attendance System</h1>
+  <h2>Welcome, {{ username }}</h2>
+
+  <section>
+    <h2>Take Attendance</h2>
+    <table id="attendanceTable">
+      <tr>
+        <th>Student Name</th>
+        <th>Roll Number</th>
+        <th>Action</th>
+      </tr>
+      <!-- Student Rows will be added by JS -->
+    </table>
+
+    <button id="submitButton" onclick="submitAttendance()">Submit Attendance</button>
+    <div id="statusMessage"></div>
+  </section>
+
+  <script>
+    const students = [
+      { name: "ainul", roll: "Roll001" },
+      { name: "jansi", roll: "Roll002" },
+      { name: "uma", roll: "Roll003" },
+      { name: "Shuguftha", roll: "Roll004" },
+      { name: "Kulsum", roll: "Roll005" },
+      { name: "Krish", roll: "Roll006" },
+      { name: "Rishi", roll: "Roll007" },
+      { name: "Raveena", roll: "Roll008" }
+    ];
+
+    const attendanceData = {};
+    let presentCount = 0;
+    let absentCount = 0;
+
+    window.onload = function () {
+      const table = document.getElementById('attendanceTable');
+      students.forEach((student) => {
+        const row = table.insertRow(-1);
+        row.innerHTML = `
+          <td>${student.name}</td>
+          <td>${student.roll}</td>
+          <td>
+            <button onclick="recordAttendance('${student.roll}', 'present', this)">Present</button>
+            <button onclick="recordAttendance('${student.roll}', 'absent', this)">Absent</button>
+          </td>
+        `;
+      });
+    };
+
+    function recordAttendance(roll, status, button) {
+      if (attendanceData[roll]) return; // Already marked
+
+      attendanceData[roll] = status;
+
+      const buttons = button.parentElement.querySelectorAll("button");
+      buttons.forEach(btn => btn.disabled = true);
+
+      if (status === "present") {
+        presentCount++;
+        button.classList.add("present");
+      } else {
+        absentCount++;
+        button.classList.add("absent");
+      }
+
+      if (Object.keys(attendanceData).length === students.length) {
+        document.getElementById("submitButton").style.display = "inline-block";
+      }
+    }
+
+    async function submitAttendance() {
+      const username = "{{ username }}";
+      const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+
+      const payload = {
+        username: username,
+        date: today,
+        attendance: attendanceData,
+        present_count: presentCount,
+        absent_count: absentCount
+      };
+
+      try {
+        const res = await fetch("http://127.0.0.1:3000/save_attendance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await res.json();
+        document.getElementById("statusMessage").innerHTML = `
+          ✅ ${result.message}<br>
+          Present: ${presentCount} | Absent: ${absentCount}
+        `;
+      } catch (err) {
+        document.getElementById("statusMessage").innerText = "❌ Failed to save attendance!";
+      }
+    }
+  </script>
+
+</body>
+</html>
